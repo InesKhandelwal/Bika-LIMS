@@ -203,7 +203,8 @@ Table data rows start here
             tal:content="structure cat">
         </th>
     </tr>
-    <span tal:replace="structure python:view.rendered_items(cat, review_state)"/>
+    <span tal:replace="structure python:view.rendered_items(cat, review_state)"
+            tal:condition="python:cat in selected_cats"/>
     </tal:show_this_category>
 </tal:cats>
 </tbody>
