@@ -1031,6 +1031,9 @@ class BikaListingTable(tableview.Table):
         :param review_state: the current review_state from self.review_states
         :return: rendered HTML text
         """
+        self.cat = cat
+        self.this_cat_selected = \
+            cat in self.bika_listing.selected_cats(self.batch)
         self.this_cat_batch = []
         self.review_state = review_state
         for item in self.batch:

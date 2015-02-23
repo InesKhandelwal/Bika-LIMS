@@ -154,22 +154,30 @@ function BikaListingTableView() {
 		var ajax_categories = $("input[name='ajax_categories']")
 		$(".bika-listing-table th.collapsed")
 		  .live("click", function () {
-					$(this).parent().nextAll("tr[cat='" + $(this).attr("cat") + "']").toggle(true)
+					var cat = $(this).attr('cat')
+					// Set expanded class on TR
 					$(this).removeClass("collapsed").addClass("expanded")
-					if (ajax_categories) {
+					// If ajax_categories are enabled, we need to go request items now.
+					if (ajax_categories.length > 0) {
 						options['ajax_category_expand'] = true
-						$.load(url,
+						$("tr[data-ajax_category='"+cat+"']").load(url,
 							   options,
 							   function (responseText, textStatus, jqXHR) {
 								   debugger;
 							   }
 						)
 					}
+					else {
+						// When ajax_categories are disabled, all cat items exist as TR elements:
+						$(this).parent().nextAll("tr[cat='" + $(this).attr("cat") + "']").toggle(true)
+					}
 				}
 		)
 		$(".bika-listing-table th.expanded").live("click", function () {
-			$(this).parent().nextAll("tr[cat='" + $(this).attr("cat") + "']").toggle(false)
+			// Set collapsed class on TR
 			$(this).removeClass("expanded").addClass("collapsed")
+			// After ajax_category expansion, collapse and expand work as they would normally.
+			$(this).parent().nextAll("tr[cat='" + $(this).attr("cat") + "']").toggle(false)
 		})
 	}
 
