@@ -150,6 +150,8 @@ class AnalysisServicesView(BikaListingView):
             self.show_categories = True
             self.expand_all_categories = False
 
+        self.ajax_categories = True
+
         self.columns = {
             'Title': {'title': _('Service'),
                       'index': 'sortable_title'},
