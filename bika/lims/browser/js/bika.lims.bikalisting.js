@@ -22,7 +22,7 @@ function BikaListingTableView() {
 		column_toggle_context_menu_selection()
 
 		$('*').click(function () {
-			if($(".tooltip").length > 0) {
+			if ($(".tooltip").length > 0) {
 				$(".tooltip").remove()
 			}
 		})
@@ -149,10 +149,24 @@ function BikaListingTableView() {
 
 	function category_header_clicked() {
 		// expand/collapse categorised rows
-		$(".bika-listing-table th.collapsed").live("click", function () {
-			$(this).parent().nextAll("tr[cat='" + $(this).attr("cat") + "']").toggle(true)
-			$(this).removeClass("collapsed").addClass("expanded")
-		})
+		var url = window.location.href.split('?')[0]
+		var options = {} // XXX get possible parameters from URL correctly into options
+		var ajax_categories = $("input[name='ajax_categories']")
+		$(".bika-listing-table th.collapsed")
+		  .live("click", function () {
+					$(this).parent().nextAll("tr[cat='" + $(this).attr("cat") + "']").toggle(true)
+					$(this).removeClass("collapsed").addClass("expanded")
+					if (ajax_categories) {
+						options['ajax_category_expand'] = true
+						$.load(url,
+							   options,
+							   function (responseText, textStatus, jqXHR) {
+								   debugger;
+							   }
+						)
+					}
+				}
+		)
 		$(".bika-listing-table th.expanded").live("click", function () {
 			$(this).parent().nextAll("tr[cat='" + $(this).attr("cat") + "']").toggle(false)
 			$(this).removeClass("expanded").addClass("collapsed")
