@@ -159,13 +159,13 @@ function BikaListingTableView() {
 					$(this).removeClass("collapsed").addClass("expanded")
 					// If ajax_categories are enabled, we need to go request items now.
 					if (ajax_categories.length > 0) {
-						options['ajax_category_expand'] = true
-						$("tr[data-ajax_category='"+cat+"']").load(url,
-							   options,
-							   function (responseText, textStatus, jqXHR) {
-								   debugger;
-							   }
-						)
+						options['ajax_category_expand'] = 1
+						options['cat'] = cat
+						options['review_state'] = $('.review_state_selector a.selected')[0].id
+						$.ajax({url: url, data: options})
+						  .done(function (data) {
+									$("tr[data-ajax_category='" + cat + "']").replaceWith(data)
+								});
 					}
 					else {
 						// When ajax_categories are disabled, all cat items exist as TR elements:

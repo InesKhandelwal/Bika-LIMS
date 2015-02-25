@@ -68,7 +68,7 @@ Item select checkboxes.
             value   item/uid;
             id  string:${view/bika_listing/form_id}_cb_${item/uid};
             item_title item/title;
-            alt python:view.msg_select_item(item);
+            alt item/title;
             tabindex string:1000;
             selector python:str(item['obj'].aq_parent.getId() if hasattr(item.get('obj', ''), 'aq_parent') else '') + '_' + item['id'];
             checked python:item.has_key('selected') and item['selected'] and 'yes' or '';"/>

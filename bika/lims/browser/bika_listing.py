@@ -231,6 +231,7 @@ class BikaListingView(BrowserView):
     """
     """
     template = ViewPageTemplateFile("templates/bika_listing.pt")
+    render_items = ViewPageTemplateFile("templates/bika_listing_table_items.pt")
 
     # If the view is rendered with control of it's own main_template etc,
     # then it will use this for the title/description.  This gives each
@@ -312,8 +313,6 @@ class BikaListingView(BrowserView):
     # is a possibility that the list could get very large.
     expand_all_categories = False
 
-    # AJAX Categories
-    #
     # With this setting, we allow categories to be simple empty place-holders.
     # When activated, the category data will be fetched from the server,
     # and complted inline.  This is useful for list which will have many
@@ -322,7 +321,7 @@ class BikaListingView(BrowserView):
     ajax_categories = False
 
     # category_index is the catalog index from each listed object.
-    # it will be used to decide if an item is a member of an index or not.
+    # it will be used to decide if an item is a member of a category.
     # This is required, if using ajax_categories.
     category_index = None
 
@@ -636,21 +635,19 @@ class BikaListingView(BrowserView):
     def __call__(self):
         """ Handle request parameters and render the form."""
 
+        # ajax_categories, basic sanity.
+        # we do this here to allow subclasses time to define these things.
+        if self.ajax_categories and not self.category_index:
+            msg = "category_index must be defined when using ajax_categories."
+            raise AssertionError(msg)
+
         self._process_request()
 
         # ajax_category_expand is included in the form if this form submission
         # is an asynchronous one triggered by a category being expanded.
         if self.request.get('ajax_category_expand', False):
-            # - get a nice formatted contents_table for all items from the
-            #   requested category.
-            import pdb, sys; pdb.Pdb(stdout=sys.__stdout__).set_trace()
-            # 1- reconfigure self.contentFilter:
-            #   - include category using some "category index", and a value.
-            # 2- Remove paging/batching hints completely.
-            # 4- return contents_table.
-            self.contentFilter[self.category_index] = category_key
-
-            return self.contents_table(table_only=self.request.get('table_only'))
+            # - get nice formatted category contents (tr rows only)
+            return self.rendered_items()
         if self.request.get('table_only', '') == self.form_id:
             return self.contents_table(table_only=self.request.get('table_only'))
         else:
@@ -901,6 +898,29 @@ class BikaListingView(BrowserView):
         table = BikaListingTable(bika_listing = self, table_only = table_only)
         return table.render(self)
 
+    def rendered_items(self):
+        """ If you set table_only to true, then nothing outside of the
+            <table/> tag will be printed (form tags, authenticator, etc).
+            Then you can insert your own form tags around it.
+        """
+        # Category which we are going to query:
+        self.cat = self.request.get('ajax_category_expand')
+        self.contentFilter[self.category_index] = self.request.get('cat')
+
+        # selected review_state must be adhered to
+        st_id = self.request.get('review_state')
+        self.review_state = \
+            [rs for rs in self.review_states if rs['id'] == st_id][0]
+
+        # These are required to allow the template to work with this class as
+        # the view.  Normally these are attributes of class BikaListingTable.
+        self.bika_listing = self
+        self.this_cat_selected = True
+        self.this_cat_batch = self.folderitems()
+
+        data = self.render_items()
+        return data
+
     def get_workflow_actions(self):
         """ Compile a list of possible workflow transitions for items
             in this Table.
@@ -978,7 +998,6 @@ class BikaListingView(BrowserView):
                 if icon:
                     return '/'.join(icon.getPhysicalPath())
 
-
 class BikaListingTable(tableview.Table):
 
     render = ViewPageTemplateFile("templates/bika_listing_table.pt")
@@ -1024,7 +1043,7 @@ class BikaListingTable(tableview.Table):
         self.form_id = bika_listing.form_id
         self.items = folderitems
 
-    def rendered_items(self, cat, review_state):
+    def rendered_items(self, cat=None, review_state=None):
         """
         Render the table rows of items in a particular category.
         :param cat: the category ID with which we will filter the results
@@ -1032,10 +1051,10 @@ class BikaListingTable(tableview.Table):
         :return: rendered HTML text
         """
         self.cat = cat
-        self.this_cat_selected = \
-            cat in self.bika_listing.selected_cats(self.batch)
-        self.this_cat_batch = []
         self.review_state = review_state
+        selected_cats = self.bika_listing.selected_cats(self.batch)
+        self.this_cat_selected = cat in selected_cats
+        self.this_cat_batch = []
         for item in self.batch:
             if item['category'] == cat:
                 self.this_cat_batch.append(item)

@@ -149,15 +149,14 @@ class AnalysisServicesView(BikaListingView):
             self.pagesize = 0  # hide batching controls
             self.show_categories = True
             self.expand_all_categories = False
-
-        self.ajax_categories = True
+            self.ajax_categories = True
+            self.category_index = 'getCategoryTitle'
 
         self.columns = {
             'Title': {'title': _('Service'),
                       'index': 'sortable_title'},
             'Keyword': {'title': _('Keyword'),
                         'index': 'getKeyword'},
-            'Category': {'title': _('Category')},
             'Method': {'title': _('Method'),
                        'toggle': False},
             'Department': {'title': _('Department'),
